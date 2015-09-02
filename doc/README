@@ -1,0 +1,26 @@
+*** libnwrap/doc: this directory contains developer documentation 
+*** for libnwrap.
+
+Currently this documentation comes in three versions:
+
+- a text manual (libnwrap.txt)
+- a texinfo version (libnwrap.texinfo)
+- a LaTEX source code (libnwrap.tex) from which, for your convenience,
+  a PDF manual is derived, using dvipdf.
+
+Also, in the 'man' subdirectory, standard Unix manual pages are provided 
+for each function in the library.
+
+The most up-to-date information will be presented on this project's website, 
+at http://libnwrap.sourceforge.net
+
+Please send all comments, improvements, corrections or remarks to 
+rbruma@yahoo.com.
+
+(NOTE for libnwrap-0.0.1-alpha: the documentation is (yet) grossly incomplete)
+
+------------------
+Razvan Bruma
+<rbruma@yahoo.com>  
+
+

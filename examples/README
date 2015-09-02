@@ -1,0 +1,21 @@
+*** examples/README
+
+This directory contains some examples of using libnwrap. 
+
+All the source files here should be compiled and linked with -lnwrap amd -lpthread
+
+Currently there are:
+
+* simple.c     : the most trivial TCP server I can think of, but illustrates
+                 a lot about the functionality that libnwrap provides
+* echosrv.c    : a simple protocol-independent implementation of a TCP & UDP 
+                 echo server [RFC 862, Postel, May 1983]
+* discardsrv.c : a simple but protocol independent implementation of the 
+                 discard protocol [RFC 863, Postel, May 1993]
+* daytimesrv.c : a protocol independent daytime server
+
+* daytimeudpcli.c : a trivial daytime udp client
+
+* webcli.c : a more complex example, simulating a web client which performs
+             resource retrieval using simultaneous connections; almost a 
+             "real-world" example

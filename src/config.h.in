@@ -1,0 +1,44 @@
+/* src/config.h.in.  Generated automatically from configure.in by autoheader.  */
+
+/* Define if on AIX 3.
+   System headers sometimes define this.
+   We just want to avoid a redefinition error message.  */
+#ifndef _ALL_SOURCE
+#undef _ALL_SOURCE
+#endif
+
+/* Define if you have the ANSI C header files.  */
+#undef STDC_HEADERS
+
+/* Define if you have gethostbyname_r with 6 args */
+#undef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
+
+/* Define if you have gethostbyname_r with 5 args */
+#undef HAVE_GETHOSTBYNAME_R_SOLARIS_STYLE
+
+/* Define if you have gethostbyname_r with 3 args */
+#undef HAVE_GETHOSTBYNAME_R_TRU64_STYLE
+
+/* Define if you have getaddrinfo */
+#undef HAVE_GETADDRINFO
+
+/* Define if you have IPv4 and IPv6 support */
+#undef IPV6
+
+/* Define if you have ONLY IPv4 support */
+#undef IPV4
+
+/* Define if you have the <dirent.h> header file.  */
+#undef HAVE_DIRENT_H
+
+/* Define if you have the <ndir.h> header file.  */
+#undef HAVE_NDIR_H
+
+/* Define if you have the <pthread.h> header file.  */
+#undef HAVE_PTHREAD_H
+
+/* Define if you have the <sys/dir.h> header file.  */
+#undef HAVE_SYS_DIR_H
+
+/* Define if you have the <sys/ndir.h> header file.  */
+#undef HAVE_SYS_NDIR_H

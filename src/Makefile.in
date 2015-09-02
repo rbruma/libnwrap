@@ -1,0 +1,46 @@
+# Makefile.in for libnwrap-0.0.1 - alpha : only builds shared libs */
+
+CFLAGS =@CFLAGS@ -fPIC -DPIC
+LDFLAGS=@LDFLAGS@ -Bshareable
+
+all: libnwrap-shared
+
+objects  = nwbc.o nwcrypt.o nw_gethostaddr.o nwinit.o nwio.o nw_notify.o \
+nwopt.o nwhints.o nwpconn.o nw_tman.o error.o
+
+nwbc.c: config.h nwrap.h nwrap-int.h 
+nwcrypt.c: config.h nwrap.h nwrap-int.h 
+nw_gethostaddr.c: config.h nwrap.h nwrap-int.h 
+nwinit.c: config.h nwrap.h nwrap-int.h 
+nwio.c: config.h nwrap.h nwrap-int.h 
+nw_notify.c: config.h nwrap.h nwrap-int.h 
+nwopt.c: config.h nwrap.h nwrap-int.h 
+nwhints.c: config.h nwrap.h nwrap-int.h 
+nwpconn.c: config.h nwrap.h nwrap-int.h 
+nw_tman.c: config.h nwrap.h nwrap-int.h 
+error.c: config.h nwrap.h nwrap-int.h 
+
+#libnwrap: $(objects)
+#	ar -ruv libnwrap.a $(objects) \
+#        ranlib libnwrap.a
+
+
+libnwrap-shared: $(objects)
+	ld $(objects) $(LDFLAGS) -o libnwrap.so.0.0 
+
+.PHONY: clean
+clean:
+	rm -f $(objects) libnwrap.a libnwrap.so.0.0
+
+.PHONY: disclean
+distclean:
+	rm -f $(objects) libnwrap.a libnwrap.so.0.0 Makefile
+
+.PHONY: install
+install:
+	install -d $(libdir) $(includedir); \
+	install -C libnwrap.so.0.0 $(libdir)/libnwrap.so.0.0;  \
+	ln -fs $(libdir)/libnwrap.so.0.0 $(libdir)/libnwrap.so.0; \
+	ln -fs $(libdir)/libnwrap.so.0.0 $(libdir)libnwrap.so; \
+	install -C -m 644 nwrap.h $(includedir)/nwrap.h
+        

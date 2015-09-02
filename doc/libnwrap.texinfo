@@ -1,0 +1,425 @@
+\input texinfo	@c -*-texinfo-*-
+@c %**start of header (This is for running Texinfo on a region)
+@setfilename libnwrap.info
+@settitle Libnwrap documentation
+@setchapternewpage odd
+@paragraphindent 4 
+
+@c tell install-info what to do
+@dircategory Individual libraries
+@direntry 
+* Libnwrap: (libnwrap).		Network wrappers library
+@end direntry
+
+@c %**end of header (This is for running texinfo on a region)
+
+@set MANUAL_VER	0.1.1
+@set LIB_VER 0.1.1-alpha
+@set AUTHOR Razvan Bruma
+@set EMAIL rbruma@@yahoo.com
+@set UPDATED 2002-08-01
+
+
+@titlepage
+@title Libnwrap documentation
+@subtitle libnwrap-0.1.1 alpha
+@author Razvan Bruma
+@page
+@end titlepage
+
+@ifinfo
+This is version @value{MANUAL_VER}, last updated @value{UPDATED} of the  online manual documenting libnwrap version @value{LIB_VER}  release.
+
+Copyright (c) 2002 by @value{AUTHOR} @email{@value{EMAIL}}.
+@end ifinfo
+
+@ifnottex
+@node Top
+@top Main menu
+This is version @value{MANUAL_VER}, last updated @value{UPDATED} of the 
+online manual documenting @code{libnwrap} version @value{LIB_VER}  release.
+
+Copyright (c) 2002 by @value{AUTHOR} @email{@value{EMAIL}}.
+@end ifnottex
+
+@menu
+* Copying::             Copyright information
+* Introduction::        Purpose of libnwrap
+* Goals::               What are we trying to achieve?
+* Using libnwrap::      Details, details...
+* Limitations::         What libnwrap was not ever designed for
+* Examples::            Three simple examples to give you the feel of it
+* Concept index::       Detailed concept index
+* Function index::      Pointers to description of every function in the library
+* Contents::            Detailed table of contents
+@end menu
+
+@node Copying
+@chapter Copying
+@cindex copyright
+This manual is part of libnwrap release @value{LIB_VER}.
+
+Copyright (c) 2002 by @value{AUTHOR} @email{@value{EMAIL}}
+
+This is free documentation; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+
+The GNU General Public License's references to "object code" and "executables" are to be interpreted as the output of any document formatting or typesetting system, including intermediate and printed output.
+
+This manual is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this manual; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+
+Permission is granted to make and distribute verbatim copies of this manual provided the copyright notice and this permission notice are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this manual under the conditions for verbatim copying, provided that the entire resulting derived work is distributed under the terms of a permission notice identical to this one
+ 
+Formatted or processed versions of this manual, if unaccompanied by the source, must acknowledge the copyright and authors of this work.
+@node Introduction
+@chapter Introduction
+@cindex libnwrap, overview
+Libnwrap is a library of network functions wrappers, which is aimed at 
+giving you, the application developer, a way to quickly take care of
+networking problems and to do what you have to do without having to worry about
+UNIX networking code intricacies.
+
+This assumes, of course, that you are writing C code that should be portable
+among (relatively) many unices and which involves simple networking problems.
+By "simple" I mean something that usually doesn't require advanced networking 
+programming knowledge, such as multicasting, raw sockets, unusual protocols
+and the like (@xref{Limitations} below for details). 
+
+If you do not have to deal with all of these, @code{libnwrap} may be for you.
+
+@node Goals
+@chapter Goals
+@cindex libnwrap, goals
+ 
+Libnwrap was started with these goals in mind, and it will tend to achieve
+them while its maturity advances:
+
+@itemize
+@item
+provide easier error checking 
+@item
+be completely thread-safe 
+@item
+provide seamless IPv4/IPv6 integration
+@item
+have builtin encryption support
+@item
+be extremely portable across various unices
+@item
+be reasonably efficient
+@end itemize
+
+Using libnwrap you can code a networking application by coding only one 
+network related function call -- that was actually the main goal. 
+
+@node Using libnwrap
+@chapter Using libnwrap
+@cindex libnwrap, usage overview
+The whole library code revolves around a few "abstractions" (represented as
+C structures), which can be thought as opaque windows into the Unix networking
+code, and which hide the underlying implementation difficulties from the
+application programmer.
+	
+Note, however, that the library was designed and written with the goal to
+ease off your programming tasks, not to promote overall ignorance. It can be 
+used both by "networking experts", when they want to save time while writing 
+a "trivial" program, or by novices, while they are on their track to learn 
+how actual network programming is being done.
+	
+The normal course of programming with libnwrap is:
+
+@itemize
+@item
+be sure to include somewhere in your code the @code{nwrap.h} header
+@item
+allocate and fill in a 'hints' structure(@xref{Hints structure})
+@item
+(optionally) allocate and fill in an 'options' structure (@xref{Options structure})
+@item
+(optionally) allocate and fill in a 'cryptography' structure (currently 
+not implemented) (@xref{Crypt structure})
+@item
+write your own function to process networking information (@xref{Handler function})
+@item
+(finally...) start running the code with the information already provided 
+@end itemize
+
+All these steps are presented below.
+
+@menu
+* Hints structure::     Give the library some hints
+* Options structure::   Establish various options
+* Crypt structure::     Only if you intend to use encryption...
+* Handler function::    What you can do in your own function
+* Error reporting::     Various error codes and what you can do with them
+@end menu
+
+@node Hints structure
+@section Give the library some 'hints'
+@cindex NW_HINTS, overview
+@cindex NW_HINTS, functions related to
+In order for the library to know how to process your code, you have to give
+it some hints by allocating and filling in a NW_HINTS structure, which is an
+opaque object.
+
+You allocate and initialize the 'hints' structure by calling nwh_create(), 
+and then you can optionally free it by calling nwh_free(). 
+
+Avoid freeing the structure using free() directly, because it contains 
+pointers to other dynamically allocated memory, so memory leaks will occur. 
+
+@itemize
+@item
+NW_HINTS *nwh_create(const char *h_name, const char *h_service, int h_family, int h_socktype, int h_passive, void*(*h_handler)(void *), void *h_args, int *h_err);
+@item 
+int *nwh_notify(NW_HINTS *hintsp, int h_notify, int signo, pid_t pid, void(*h_notfunc)(int, int, int), int *h_notflag);
+@item
+void nwh_free(NW_HINTS *hintsp);
+@end itemize
+@menu
+* nwh_create()::           Creating a NW_HINTS structure
+* nwh_notify()::           How to know libnrwap is done
+* nwh_free()::             Avoid memory leakage
+@end menu
+
+@node nwh_create()
+@subsection nwh_create() : Creating a NW_HINTS structure	
+@findex nwh_create()
+@cindex NW_HINTS, creating
+
+@code{NW_HINTS *nwh_create(const char *h_name, const char *h_service, int h_family, int h_socktype, int h_passive, void*(*h_handler)(void *), void *h_args, int *h_err); }
+
+@code{nwh_create()} allocates, initializes and returns a new NW_HINTS object. 
+
+This is the first function you should call when starting using libnwrap. If not enough memory is available, this function returns @code{NULL}, so you should check the result of @strong{every} call to nwh_create().
+
+To give you the utmost flexibility in one single function call, this function 
+has a lot of arguments(eight), but they are fairly simple and can be easily grouped by functionality.
+
+The first two, @strong{h_name} and @strong{h_service}, specify the host name or
+IP address and the service where you want to connect or where you want to bind.
+
+The first can be a IPv4 address, an IPv6 address, a hostname, a FQDN, the
+special strings "/local" or "/unix" or even NULL, in which case you should 
+specify the 'h_passive' flag also (it means that you want to bind to the 
+wildcard address, BTW).
+
+The second can be a service name, a port number, or the full path to a local domain UNIX socket, in which case the first argument should be either "/local" or
+"/unix". This argument must not be NULL or an error will be returned.
+
+The second two arguments, @strong{h_family} and @strong{h_socktype} give the
+library additional information about your intentions. 'h_family' should
+be one of AF_INET, AF_UNIX, AF_INET6 (meaning that you intend to create a socketin one of those families) or AF_UNSPEC, which for libnwrap means "do what you
+can first". 'h_socktype' specifies the intended socket type you want created, 
+and must be either "SOCK_DGRAM" or "SOCK_STREAM". A zero value is similar
+to AF_UNSPEC above.
+
+@strong{h_passive}, if not zero, means you want to create a server, so call bind, and if necessary also listen and accept. 
+
+The following two arguments, @strong{h_handler} and @strong{h_args} are, respectively, a pointer to a function (that you write) taking and returning a void* and the argument such function should be called with. This is your "handler" function that libnwrap's calls to process the data available on the network, and it
+cannot be NULL. This function is called once for each available socket connection, either bound or, in case of stream servers, accepted.
+
+Upon error, nwh_create returns a NULL pointer and records additional error information in its last argument, @strong{h_err}, if not null.
+@node nwh_notify()
+@subsection nwh_notify : How liibnwrap tells us that it's done
+@findex nwh_notify()
+@cindex NW_HINTS, notify information
+
+@code{int nwh_notify(NW_HINTS *hintsp, int h_notify, pid_t pid, void(*h_notfunc)(int, int, int), int *h_notflag);}
+ 
+@code{nwh_notify()} deals with the way of notifying you when the connection terminates. The switch is @strong{h_notify} which can take one of the followng values:
+
+@itemize
+@item
+NW_NOTSIG -- means deliver a signal when finished. @strong{h_signo} specifies the signal to be delivered and @strong{pid} should be the ProcessID where you want the signal delivered. Specify '0' here to send a signal to this process.
+@item
+NW_NOTFUNC -- means calling the specified and caller suplied @strong{h_notfunc} upon termination. This function takes three integer arguments, the first being the connection id, the second libnwrap's error code (if any) and the third additional error specification (also, if any).
+@item 
+NW_NOTFLAG -- means turn on the specified @strong{h_notflag}. The library does this by setting the flag to '1'. It's your responsibility to ensure proper synchronization between multiple threads sharing the same notification flag.
+@end itemize
+@node nwh_free()
+@subsection nwh_free : avoiding memory leakage
+@findex nwh_free()
+@cindex NW_HINTS, freeing
+
+@code{void nwh_free(NW_HINTS *hintsp);}
+
+@code{nwh_free()} will free the @code{NW_HINTS} structure. Be sure:
+
+@enumerate
+@item
+Not to call this function before you start processing network information with nw_init()
+@item
+Not to free the NW_HINTS structure by simply using @code{free()}, since
+the structure contains pointers to dynamically allocated memory which will
+become unreferenced by a simple free and thus will provoque memory leakage. 
+Always use @code{nwh_free()} instead. 
+@end enumerate
+
+@node Options structure
+@section Establish some options
+@cindex NW_OPTS, overview
+@cindex NW_OPTS, functions retated to
+You can specify various options for the connection you are creating by filling up a NW_OPTS structure. 
+
+The same paradigm applies to this structure as to the NW_HINTS one. However, you don't have the ability to free this one, because it is used throughout the whole process. 
+
+In order to use the options structure, you should first initialize it by calling@code{nwo_create()}, then fill it step by step by calling @code{nwo_add()}, once for every option you want enabled.
+
+The prototypes for those functions are given below. Additional sections of this manual provide you more information.
+
+@itemize
+@item
+NW_OPTS* nwo_create(int *o_err);
+@item
+int nwo_add(NW_OPTS *optsptr, int optname, const void *optval, size_t optlen);
+@end itemize
+
+@menu
+* nwo_create()::                  Initialize NW_OPTS
+* nwo_add()::                     Adding options to NW_OPTS
+* Supported options::             What options can you provide
+@end menu
+
+@node nwo_create()
+@subsection nwo_create: initialize NW_OPTS
+@code{NW_OPTS* nwo_create(int *o_err);}
+
+Use @code{nwo_create()} to create and initialize a NW_OPTS structure. This 
+function returns the newly allocated structure or NULL on error, with the error code stored in @strong{o_err}, if not null. 
+
+This step is required before you can start filling the desired options using
+@code{nwo_add()}.
+
+@node nwo_add()
+@subsection nwo_add(): Adding options to NW_OPTS
+The prototype for this function is :
+
+@code{int nwo_add(NW_OPTS *optsptr, int optname, const void *optval, size_t optlen);}
+
+The function takes the following arguments:
+
+@enumerate
+@item
+@strong{optsptr} is a pointer to a NW_OPTS structure previously allocated with @code{nwo_add()};
+@item
+@strong{optname} is one of the option types described in @xref{Supported options}.
+@item
+@strong{optval} is a pointer to the new value for the option you are setting
+@item
+@strong{optlen} is the length of the above pointer 
+@end enumerate  
+
+@node Supported options  
+@subsection Supported options 
+
+This section describes the options supported by current version of libnwrap as
+arguments to @code{nwo_add()}.
+
+These options can be grouped in two categories : on the one hand, there are some socket options that will be set by libnwrap for all the sockets that support them. The reason you would want to tell it to do so is that these socket options
+are inherited by the accepting socket from the listening socket and you might
+want to have them set or unset when accept() returns. Libnwrap will try its best to set them but it will silently discard any errors received from setsockopt().
+
+The socket options and the corresponding libnwrap options you use to set them are the following:
+
+@itemize
+@item
+SO_DEBUG -- use NWO_SODEBUG
+@item 
+SO_DONTROUTE  -- use NWO_SODONTROUTE
+@item
+SO_KEEPALLIVE -- use NWO_SOKEEPALIVE
+@item
+SO_LINGER  -- use NWO_SOLINGER
+@item
+SO_OOBINLINE -- use NWO_SOOOBINLINE
+@item
+SO_RCVBUF -- use NWO_SORCVBUF
+@item
+SO_SNDBUF -- use NWO_SOSNDBUF
+@end itemize 
+
+Check your local UNIX manual for what values you should provide these options
+with and for the socket types that are accepting such options. 
+
+Note that, in addition, libnwrap always sets SO_REUSEADDR for a TCP server, if this option is available in the local implementation.
+
+The second group of options are not really socket options, but more libnwrap options, guiding its behaviour in the way you specify. These are :
+
+@itemize
+@item 
+NWO_BACKLOG -- specify the backlog to use for listen()
+@item
+NWO_MAXCONN -- specify the maximum number of simultaneous stream connection thatare allowed to this server
+@item
+NWO_CTMOUT -- specify the connection timeout for a TCP client
+@end itemize
+
+These options take integer values, specifying the desired values.
+
+@node Crypt structure
+@section If you want to use encryption...
+
+Cryptography will be supported in a future release through the use of another
+opaque object, the NW_CRYPT structure. 
+
+In this release, although you can create such a structure with @code{nwc_create()} and you can pass it as an argument to @code{nw_init()}, the cryptographic functionality is not (yet) implemented. 
+
+@node Handler function
+@section What you can you do in your own function 
+
+If you didn't do it before, now it is time to write your handler function that libnwrap will call to process the data. Information about the connection you are currently processing is available via the special @code{nw_this} pointer, which will be described below. 
+
+Also in this function of yours you can take advantage of some special, libnwrap provided, functions, that can considerably ease off your I/O processing code.
+
+These are nw_read(), nw_write(), nw_readline(), nw_readstring() and nw_readtok()
+
+(DESCRIPTION NOT YET WRITTEN. SEE THE MANUAL PAGES FOR DETAILS)
+
+@node Error reporting
+@section Error reporting
+
+(NOT YET WRITTEN)
+
+@node Limitations
+@chapter Limitations
+
+As stated above in @xref{Introduction}, libnwrap was designed to take the burden of writing the most frequently used network operations from the shoulders of the application programmer and package it into a compact, uniform, library.
+
+As such, it does not address more advanced network operations, and it has no intention to do so in the future. 
+
+Features which are outside the scope of this library include, but are not limited to:
+
+@itemize
+@item 
+UDP multicasting
+@item
+raw sockets creation and manipulation
+@item
+special features, like routing sockets, datalink access function and so on
+@end itemize
+
+@node Examples
+@chapter Examples
+
+-- This section is intended to contain three simple examples to get you started. Maybe it will do so in the beta realease. --
+
+-- In the mean time, check the "examples" directory in the top source directory --
+
+@node Concept index
+@unnumbered Concept Index
+@printindex cp
+
+@node Function index
+@unnumbered Function Index 
+@printindex fn
+
+@node Contents
+@unnumbered Detailed table of contents
+@contents
+
+@bye
+

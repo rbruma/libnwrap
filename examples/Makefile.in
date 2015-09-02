@@ -1,0 +1,28 @@
+# Makefile.in for libnwrap-0.0.1 - alpha  */
+
+CFLAGS =@CFLAGS@ 
+LDFLAGS = @LDFLAGS@ -s -L../src/ -lpthread -lnwrap
+
+examples = simple echosrv webcli
+
+all :$(examples)
+
+simple : simple.c 
+	cc $(CFLAGS) $(LDFLAGS)  simple.c -o simple 
+echosrv : echosrv.c 
+	cc $(CFLAGS) $(LDFLAGS)  echosrv.c -o echosrv 
+webcli : webcli.c 
+	cc $(CFLAGS) $(LDFLAGS)  webcli.c -o webcli 
+	
+
+.PHONY: clean
+clean:
+	rm -f $(examples) 
+
+.PHONY: disclean
+distclean:
+	rm -f $(examples) Makefile
+
+.PHONY: install
+install:
+        

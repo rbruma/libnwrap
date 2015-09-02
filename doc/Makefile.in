@@ -1,0 +1,22 @@
+SHELL = /bin/sh
+
+
+all: libnwrap-info
+
+libnwrap-info: libnwrap.texinfo
+	makeinfo --force --no-split libnwrap.texinfo
+
+.PHONY: clean
+clean:
+	rm -f libnwrap.info
+
+.PHONY: distclean
+distclean:
+	rm -f libnwrap.info Makefile
+
+.PHONY: install
+install:
+	install -d $(infodir) $(mandir)/man3; \
+	install -C -m 644 libnwrap.info $(infodir)/libnwrap.info; \
+	install -C -m 644 man/*.gz $(mandir)/man3 
+ 

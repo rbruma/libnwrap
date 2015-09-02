@@ -1,0 +1,52 @@
+SHELL=/bin/sh
+CFLAGS=@CFLAGS@ -Wall -W
+LDFLAGS=@LDFLAGS@
+
+bindir=@bindir@
+datadir=@datadir@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+infodir=@infodir@
+libdir=@libdir@
+libexecdir=@libexecdir@
+localstatedir=@localstatedir@
+mandir=@mandir@
+oldincludedir=@oldincludedir@
+prefix=@prefix@
+sbindir=@sbindir@
+sharedstatedir=@sharedstatedir@
+sysconfdir=@sysconfdir@
+top_srcdir=@top_srcdir@
+
+SUBDIRS = src doc examples
+
+all: subdirs 
+
+.PHONY: subdirs $(SUBDIRS)
+.PHONY: clean
+.PHONY: distclean
+.PHONY: install
+
+clean:
+	for n in $(SUBDIRS); do \
+	$(MAKE) clean -C $$n; \
+	done
+
+distclean:
+	for n in $(SUBDIRS); do \
+	$(MAKE) distclean -C $$n; \
+	done; \
+	rm -f Makefile config.*
+
+install:
+	for n in $(SUBDIRS); do \
+	$(MAKE) install -C $$n; \
+	done; 
+
+subdirs: $(SUBDIRS)
+
+$(SUBDIRS):
+	$(MAKE) -C $@
+
+.EXPORT_ALL_VARIABLES:
+ 
